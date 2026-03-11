@@ -1,5 +1,6 @@
 package model;
 
+//serviceresult class
 public class ServiceResult {
     private final boolean success;
     private final String message;
