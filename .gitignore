@@ -1,0 +1,18 @@
+# Database credentials
+config/db.properties
+
+# VS Code settings
+.vscode/
+
+# Java build files
+*.class
+bin/
+out/
+build/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Metals build files
+.metals/
