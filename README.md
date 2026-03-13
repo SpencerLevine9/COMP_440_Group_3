@@ -41,3 +41,5 @@ Run the SQL script located in:
 sql/schema.sql
 
 This will create the database and the required user table.
+
+Phase 1 Demo: https://www.youtube.com/watch?v=QBybrf2hZLA
