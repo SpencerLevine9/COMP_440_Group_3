@@ -1,5 +1,9 @@
 {
+  "java.project.sourcePaths": [
+    "."
+  ],
   "java.project.referencedLibraries": [
+    "lib/**/*.jar",
     "/Users/graceg/Desktop/JAVAFX/javafx-sdk-21.0.10/lib/**/*.jar"
   ]
 }

@@ -1,15 +1,17 @@
 package service;
 
-import model.ServiceResult;
 import model.User;
+import model.ServiceResult;
 
 public class AuthService {
     private final ValidationService validationService;
     private final UserService userService;
+
     public AuthService() {
         this.validationService = new ValidationService();
         this.userService = new UserService();
     }
+
     public AuthService(ValidationService validationService, UserService userService) {
         this.validationService = validationService;
         this.userService = userService;
@@ -22,7 +24,7 @@ public class AuthService {
         }
 
         ServiceResult duplicateResult = userService.checkDuplicates(user);
-        if(!duplicateResult.isSuccess()) {
+        if (!duplicateResult.isSuccess()) {
             return duplicateResult;
         }
 
@@ -31,7 +33,7 @@ public class AuthService {
 
     public ServiceResult login(String username, String password) {
         ServiceResult validationResult = validationService.validateLoginFields(username, password);
-        if(!validationResult.isSuccess()) {
+        if (!validationResult.isSuccess()) {
             return validationResult;
         }
 

@@ -1,19 +1,17 @@
 package service;
 
-import model.ServiceResult;
 import model.User;
-
+import model.ServiceResult;
 import java.util.regex.Pattern;
 
 public class ValidationService {
+
     private boolean isBlank(String value) {
         return value == null || value.trim().isEmpty();
     }
 
-    private static final Pattern Email_Pattern =
-            Pattern.compile("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$");
-    private static final Pattern Phone_Pattern =
-            Pattern.compile("^\\d{10,15}$");
+    private static final Pattern Email_Pattern = Pattern.compile("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$");
+    private static final Pattern Phone_Pattern = Pattern.compile("^\\d{10,15}$");
 
     public ServiceResult validateSignupFields(User user) {
         if (user == null) {
@@ -25,8 +23,7 @@ public class ValidationService {
                 isBlank(user.getFirstName()) ||
                 isBlank(user.getLastName()) ||
                 isBlank(user.getEmail()) ||
-                isBlank(user.getPhone()))
-        {
+                isBlank(user.getPhone())) {
             return ServiceResult.failure("All fields are required.");
         }
 
@@ -53,5 +50,16 @@ public class ValidationService {
 
         return ServiceResult.success("Login validation passed.");
     }
-}
 
+    // compatability
+    public String validateLogin(String username, String password) {
+        ServiceResult result = validateLoginFields(username, password);
+        return result.isSuccess() ? null : result.getMessage();
+    }
+
+    // compatability
+    public String validateSignup(User user, String confirmPassword) {
+        ServiceResult result = validateSignupFields(user);
+        return result.isSuccess() ? null : result.getMessage();
+    }
+}

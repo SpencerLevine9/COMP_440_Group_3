@@ -3,7 +3,7 @@
 // as it includes a salt to prevent rainbow table attacks and uses multiple iterations to slow down brute-force attacks.
 package database;
 
-import java.security.NoSuchAlgorithmException;  
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Base64;

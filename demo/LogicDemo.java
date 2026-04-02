@@ -1,7 +1,7 @@
 package demo;
 
-import model.ServiceResult;
 import model.User;
+import model.ServiceResult;
 import service.AuthService;
 
 public class LogicDemo {
@@ -16,8 +16,7 @@ public class LogicDemo {
                 "John",
                 "Doe",
                 "jdoe@email.com",
-                "1234567890"
-        );
+                "1234567890");
 
         ServiceResult signupResult = authService.signUp(newUser);
         System.out.println("Signup success: " + signupResult.isSuccess());

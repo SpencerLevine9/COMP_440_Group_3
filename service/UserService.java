@@ -1,14 +1,16 @@
 package service;
 
-import model.ServiceResult;
 import model.User;
+import model.ServiceResult;
 import database.UserDAO;
 
 public class UserService {
     private final UserDAO userDAO;
+
     public UserService() {
         this.userDAO = new UserDAO();
     }
+
     public UserService(UserDAO userDAO) {
         this.userDAO = userDAO;
     }
@@ -28,14 +30,18 @@ public class UserService {
     }
 
     public ServiceResult registerUser(User user) {
+        ServiceResult duplicateCheck = checkDuplicates(user);
+        if (!duplicateCheck.isSuccess()) {
+            return duplicateCheck;
+        }
+
         boolean register = userDAO.registerUser(
                 user.getUsername(),
                 user.getPassword(),
                 user.getFirstName(),
                 user.getLastName(),
                 user.getEmail(),
-                user.getPhone()
-        );
+                user.getPhone());
 
         if (register) {
             return ServiceResult.success("Signup successful.");
