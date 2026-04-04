@@ -1,5 +1,5 @@
 # Database credentials
-config/db.properties
+config/db.properties.example
 
 # VS Code settings
 .vscode/

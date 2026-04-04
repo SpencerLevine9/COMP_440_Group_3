@@ -5,57 +5,56 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-import java.util.ArrayList;
-import java.util.Arrays;
+import model.ServiceResult;
+import service.RentalService;
+
 import java.util.List;
 
 public class MainApp {
 
-    private Stage window;
+    private final Stage window;
+    private final RentalService rentalService;
+    private final String currentUsername;
 
-    // TEMPORARY sample data (will be replaced later by DB)
-    private List<String> sampleRentals = Arrays.asList(
-            "Cabin - Wi-Fi, Kitchen, Mountain View - $100",
-            "Apartment - Wi-Fi, Parking - $80",
-            "Villa - Pool, Kitchen, Wi-Fi - $200",
-            "Studio - Wi-Fi, Balcony, Pet Friendly - $600",
-            "House - Kitchen, Garden, Parking, Air Conditioning - $150",
-            "Condo - Elevator, Free Gym, Security System - $120",
-            "One Room Apartment - Washer, Dryer, Parking, Wi-Fi - $90",
-            "Beach House - Kitchen, Pool, Balcony, Smoking Area - $250",
-            "Mountain Cabin - Mountain View, Fireplace, Pets Allowed, Garden - $180",
-            "City Loft - Wi-Fi, Air Conditioning, Elevator, Security System, Pool - $110",
-            "Suburban Home - Parking, Washer, Dryer, Free Gym, Balcony - $130",
-            "Downtown Studio - Kitchen, Wi-Fi, Air Conditioning, Elevator, Security System, Wheelchair Accessible - $95");
-
-    // Constructor receives the stage from LoginPage
+    // Temporary overload so this still compiles even before LoginPage is updated.
     public MainApp(Stage stage) {
+        this(stage, "demoUser");
+    }
+
+    public MainApp(Stage stage, String currentUsername) {
         this.window = stage;
+        this.currentUsername = currentUsername;
+        this.rentalService = new RentalService();
+
         window.setTitle("Rental System");
         showMainMenu();
     }
 
     private void showMainMenu() {
+        Label welcome = new Label("Main Menu");
+        Label userLabel = new Label("Logged in as: " + currentUsername);
+
         Button postBtn = new Button("Post Rental");
         Button searchBtn = new Button("Search Rentals");
         Button reviewBtn = new Button("Write Review");
 
         postBtn.setOnAction(e -> showPostRental());
         searchBtn.setOnAction(e -> showSearch());
-        reviewBtn.setOnAction(e -> showReview());
+        reviewBtn.setOnAction(e -> showReview(""));
 
         VBox layout = new VBox(15);
         layout.setPadding(new Insets(20));
         layout.getChildren().addAll(
-                new Label("Main Menu"),
+                welcome,
+                userLabel,
                 postBtn,
                 searchBtn,
-                reviewBtn);
+                reviewBtn
+        );
 
-        window.setScene(new Scene(layout, 300, 250));
+        window.setScene(new Scene(layout, 320, 260));
     }
 
-    // -- POST RENTAL --
     private void showPostRental() {
         TextField title = new TextField();
         title.setPromptText("Title");
@@ -63,8 +62,8 @@ public class MainApp {
         TextField desc = new TextField();
         desc.setPromptText("Description");
 
-        TextField feature = new TextField();
-        feature.setPromptText("Feature");
+        TextField features = new TextField();
+        features.setPromptText("Features (comma-separated)");
 
         TextField price = new TextField();
         price.setPromptText("Price");
@@ -75,23 +74,21 @@ public class MainApp {
         Button back = new Button("Back");
 
         submit.setOnAction(e -> {
-            try {
-                String t = title.getText().trim();
-                String d = desc.getText().trim();
-                String f = feature.getText().trim();
-                String priceText = price.getText().trim();
+            ServiceResult result = rentalService.postRental(
+                    currentUsername,
+                    title.getText(),
+                    desc.getText(),
+                    price.getText(),
+                    features.getText()
+            );
 
-                if (t.isEmpty() || d.isEmpty() || f.isEmpty() || priceText.isEmpty()) {
-                    message.setText("All fields are required.");
-                    return;
-                }
+            message.setText(result.getMessage());
 
-                double p = Double.parseDouble(priceText);
-                // TODO: call RentalService here
-                message.setText("Rental submitted (placeholder)");
-
-            } catch (Exception ex) {
-                message.setText("Invalid input.");
+            if (result.isSuccess()) {
+                title.clear();
+                desc.clear();
+                features.clear();
+                price.clear();
             }
         });
 
@@ -101,80 +98,96 @@ public class MainApp {
         layout.setPadding(new Insets(20));
         layout.getChildren().addAll(
                 new Label("Post Rental"),
-                title, desc, feature, price,
-                submit, back,
-                message);
+                title,
+                desc,
+                features,
+                price,
+                submit,
+                back,
+                message
+        );
 
-        window.setScene(new Scene(layout, 350, 300));
+        window.setScene(new Scene(layout, 380, 320));
     }
 
-    // -- SEARCH WINDOW --
     private void showSearch() {
         TextField featureInput = new TextField();
-        featureInput.setPromptText("Enter feature(s) separated by a comma.)");
+        featureInput.setPromptText("Enter one feature");
 
-        Label hint = new Label("Please select from dropdown or type features manually (e.g. Wi-Fi, Kitchen)");
+        Label hint = new Label("Type one feature or pick one from the dropdown.");
 
         ComboBox<String> featureDropdown = new ComboBox<>();
         featureDropdown.getItems().addAll(
-                "Wi-Fi", "Kitchen", "Mountain View", "Parking", "Pool", "Air Conditioning", "Pets Allowed", "Washer",
-                "Dryer", "Free Gym",
-                "Security System", "Balcony", "Garden", "Wheelchair Accessible", "Elevator", "Smoking Area");
+                "Wi-Fi",
+                "Kitchen",
+                "Mountain View",
+                "Parking",
+                "Pool",
+                "Air Conditioning",
+                "Pets Allowed",
+                "Washer",
+                "Dryer",
+                "Free Gym",
+                "Security System",
+                "Balcony",
+                "Garden",
+                "Wheelchair Accessible",
+                "Elevator",
+                "Smoking Area"
+        );
         featureDropdown.setPromptText("Select a feature");
 
         featureDropdown.setOnAction(e -> {
             String selected = featureDropdown.getValue();
             if (selected != null) {
-                if (featureInput.getText().isEmpty()) {
-                    featureInput.setText(selected);
-                } else {
-                    featureInput.setText(featureInput.getText() + ", " + selected);
-                }
+                featureInput.setText(selected);
             }
         });
 
         ListView<String> results = new ListView<>();
+        results.setPrefHeight(180);
+
+        Label message = new Label();
 
         Button searchBtn = new Button("Search");
+        Button reviewSelectedBtn = new Button("Review Selected Rental");
         Button back = new Button("Back");
 
         searchBtn.setOnAction(e -> {
-            String input = featureInput.getText().toLowerCase();
+            String feature = featureInput.getText().trim();
 
             results.getItems().clear();
+            message.setText("");
 
-            if (input.isEmpty()) {
-                results.getItems().add("Please enter at least one feature.");
+            if (feature.isEmpty()) {
+                message.setText("Please enter a feature.");
                 return;
             }
 
-            String[] features = input.split(",");
-
-            List<String> matches = new ArrayList<>();
-
-            for (String rental : sampleRentals) {
-                String lowerRental = rental.toLowerCase();
-
-                boolean allMatch = true;
-
-                for (String f : features) {
-                    String trimmed = f.trim();
-                    if (!lowerRental.contains(trimmed)) {
-                        allMatch = false;
-                        break;
-                    }
-                }
-
-                if (allMatch) {
-                    matches.add(rental);
-                }
-            }
+            List<String> matches = rentalService.searchByFeature(feature);
 
             if (matches.isEmpty()) {
                 results.getItems().add("No rentals found.");
             } else {
                 results.getItems().addAll(matches);
             }
+        });
+
+        reviewSelectedBtn.setOnAction(e -> {
+            String selected = results.getSelectionModel().getSelectedItem();
+
+            if (selected == null || selected.equals("No rentals found.")) {
+                message.setText("Please select a rental from the results first.");
+                return;
+            }
+
+            String rentalId = extractRentalId(selected);
+            if (rentalId == null) {
+                message.setText("Could not determine the rental ID from the selected row.");
+                return;
+            }
+
+            showReview(rentalId);
         });
 
         back.setOnAction(e -> showMainMenu());
@@ -188,18 +201,26 @@ public class MainApp {
                 featureInput,
                 searchBtn,
                 results,
-                back);
+                reviewSelectedBtn,
+                back,
+                message
+        );
 
-        window.setScene(new Scene(layout, 400, 350));
+        window.setScene(new Scene(layout, 540, 430));
     }
 
-    // -- REVIEW PAGE --
-    private void showReview() {
+    private void showReview(String prefilledRentalId) {
+        TextField rentalIdField = new TextField();
+        rentalIdField.setPromptText("Rental ID");
+        rentalIdField.setText(prefilledRentalId);
+
         ComboBox<String> rating = new ComboBox<>();
         rating.getItems().addAll("Excellent", "Good", "Fair", "Poor");
+        rating.setPromptText("Select a rating");
 
         TextArea remark = new TextArea();
         remark.setPromptText("Write your review...");
+        remark.setPrefRowCount(4);
 
         Label message = new Label();
 
@@ -207,16 +228,20 @@ public class MainApp {
         Button back = new Button("Back");
 
         submit.setOnAction(e -> {
-            String r = rating.getValue();
-            String text = remark.getText();
+            ServiceResult result = rentalService.submitReview(
+                    rentalIdField.getText(),
+                    currentUsername,
+                    rating.getValue(),
+                    remark.getText()
+            );
 
-            if (r == null) {
-                message.setText("Select a rating.");
-                return;
+            message.setText(result.getMessage());
+
+            if (result.isSuccess()) {
+                rentalIdField.clear();
+                rating.setValue(null);
+                remark.clear();
             }
-
-            // TODO: call review service
-            message.setText("Review submitted (placeholder)");
         });
 
         back.setOnAction(e -> showMainMenu());
@@ -225,12 +250,32 @@ public class MainApp {
         layout.setPadding(new Insets(20));
         layout.getChildren().addAll(
                 new Label("Write Review"),
+                rentalIdField,
                 rating,
                 remark,
                 submit,
                 back,
-                message);
+                message
+        );
 
-        window.setScene(new Scene(layout, 350, 300));
+        window.setScene(new Scene(layout, 380, 340));
+    }
+
+    private String extractRentalId(String row) {
+        String prefix = "Rental ID: ";
+        int start = row.indexOf(prefix);
+
+        if (start < 0) {
+            return null;
+        }
+
+        start += prefix.length();
+        int end = row.indexOf(" |", start);
+
+        if (end < 0) {
+            return null;
+        }
+
+        return row.substring(start, end).trim();
     }
 }

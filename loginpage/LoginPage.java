@@ -15,8 +15,8 @@ import model.ServiceResult;
 public class LoginPage extends Application {
 
     private Stage window;
-    private UserService userService = new UserService();
-    private ValidationService validationService = new ValidationService();
+    private final UserService userService = new UserService();
+    private final ValidationService validationService = new ValidationService();
 
     @Override
     public void start(Stage primaryStage) {
@@ -42,16 +42,15 @@ public class LoginPage extends Application {
             String user = username.getText();
             String pass = password.getText();
 
-            String validationMsg = validationService.validateLogin(user, pass);
-            if (validationMsg != null) {
-                message.setText(validationMsg);
+            ServiceResult validationResult = validationService.validateLoginFields(user, pass);
+            if (!validationResult.isSuccess()) {
+                message.setText(validationResult.getMessage());
                 return;
             }
 
             boolean success = userService.validateLoginCredentials(user, pass);
             if (success) {
-                // Open MainApp on the same stage
-                new MainApp(window);
+                new MainApp(window, user);
             } else {
                 message.setText("Invalid username or password.");
             }
@@ -110,9 +109,9 @@ public class LoginPage extends Application {
                     email.getText(),
                     phone.getText());
 
-            String validationMsg = validationService.validateSignup(newUser, confirm.getText());
-            if (validationMsg != null) {
-                message.setText(validationMsg);
+            ServiceResult validationResult = validationService.validateSignupFields(newUser);
+            if (!validationResult.isSuccess()) {
+                message.setText(validationResult.getMessage());
                 return;
             }
 
@@ -124,6 +123,10 @@ public class LoginPage extends Application {
 
             ServiceResult result = userService.registerUser(newUser);
             message.setText(result.getMessage());
+
+            if (result.isSuccess()) {
+                showLoginPage();
+            }
         });
 
         backBtn.setOnAction(e -> showLoginPage());
