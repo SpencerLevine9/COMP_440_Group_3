@@ -1,8 +1,8 @@
 package service;
 
+import database.UserDAO;
 import model.User;
 import model.ServiceResult;
-import database.UserDAO;
 
 public class UserService {
     private final UserDAO userDAO;
