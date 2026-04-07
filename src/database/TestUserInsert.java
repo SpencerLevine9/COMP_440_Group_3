@@ -12,10 +12,9 @@ public class TestUserInsert {
                 "Spencer",
                 "Levine",
                 "spencer@email.com",
-                "1234567890"
-        );
+                "1234567890");
 
-        if(success){
+        if (success) {
             System.out.println("User inserted successfully!");
         } else {
             System.out.println("User insert failed.");

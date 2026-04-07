@@ -3,9 +3,24 @@
   "configurations": [
     {
       "type": "java",
+      "name": "MainApp",
+      "request": "launch",
+      "mainClass": "MainApp",
+      "projectName": "COMP_440_Group_3_44622a73"
+    },
+    {
+      "type": "java",
+      "name": "LoginPage",
+      "request": "launch",
+      "mainClass": "LoginPage",
+      "projectName": "COMP_440_Group_3_44622a73"
+    },
+    {
+      "type": "java",
       "name": "Run LoginPage",
       "request": "launch",
-      "mainClass": "loginpage.LoginPage",
+      "mainClass": "LoginPage",
+      "projectName": "COMP_440_Group_3_44622a73",
       "vmArgs": "--module-path /Users/graceg/Desktop/JAVAFX/javafx-sdk-21.0.10/lib --add-modules javafx.controls,javafx.fxml"
     }
   ]

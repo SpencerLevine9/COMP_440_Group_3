@@ -6,23 +6,27 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import rentalui.MainApp;
+import service.UserService;
+import service.ValidationService;
+import model.User;
+import model.ServiceResult;
 
 public class LoginPage extends Application {
 
     private Stage window;
+    private UserService userService = new UserService();
+    private ValidationService validationService = new ValidationService();
 
     @Override
     public void start(Stage primaryStage) {
         window = primaryStage;
         window.setTitle("System Login Page");
-
         showLoginPage();
-
         window.show();
     }
 
     private void showLoginPage() {
-
         TextField username = new TextField();
         username.setPromptText("Username");
 
@@ -35,22 +39,22 @@ public class LoginPage extends Application {
         Button signupBtn = new Button("Sign Up");
 
         loginBtn.setOnAction(e -> {
-
             String user = username.getText();
             String pass = password.getText();
 
-            if (user.length() < 8) {
-                message.setText("Username must be at least 8 characters.");
+            String validationMsg = validationService.validateLogin(user, pass);
+            if (validationMsg != null) {
+                message.setText(validationMsg);
                 return;
             }
 
-            if (!validPassword(pass)) {
-                message.setText(
-                        "Password must have a minimum of 8 characters with one capital letter, one number, and one symbol.");
-                return;
+            boolean success = userService.validateLoginCredentials(user, pass);
+            if (success) {
+                // Open MainApp on the same stage
+                new MainApp(window);
+            } else {
+                message.setText("Invalid username or password.");
             }
-
-            message.setText("Login Successful!");
         });
 
         signupBtn.setOnAction(e -> showSignupPage());
@@ -70,15 +74,14 @@ public class LoginPage extends Application {
     }
 
     private void showSignupPage() {
-
         TextField username = new TextField();
         username.setPromptText("Username");
 
         PasswordField password = new PasswordField();
-        password.setPromptText("Password:");
+        password.setPromptText("Password");
 
         PasswordField confirm = new PasswordField();
-        confirm.setPromptText("Confirm Password:");
+        confirm.setPromptText("Confirm Password");
 
         TextField firstName = new TextField();
         firstName.setPromptText("First Name");
@@ -95,50 +98,38 @@ public class LoginPage extends Application {
         Label message = new Label();
 
         Button registerBtn = new Button("Register");
-        Button backBtn = new Button("Go back to the Login Page");
+        Button backBtn = new Button("Back to Login");
 
         registerBtn.setOnAction(e -> {
+            User newUser = new User(
+                    username.getText(),
+                    password.getText(),
+                    confirm.getText(),
+                    firstName.getText(),
+                    lastName.getText(),
+                    email.getText(),
+                    phone.getText());
 
-            String user = username.getText();
-            String pass = password.getText();
-            String conf = confirm.getText();
-            String em = email.getText();
-            String ph = phone.getText();
-
-            if (user.length() < 8) {
-                message.setText("Username must be at least 8 characters.");
+            String validationMsg = validationService.validateSignup(newUser, confirm.getText());
+            if (validationMsg != null) {
+                message.setText(validationMsg);
                 return;
             }
 
-            if (!validPassword(pass)) {
-                message.setText(
-                        "Password must have a minimum of 8 characters, with one capital letter, one number, and one symbol.");
+            ServiceResult duplicateCheck = userService.checkDuplicates(newUser);
+            if (!duplicateCheck.isSuccess()) {
+                message.setText(duplicateCheck.getMessage());
                 return;
             }
 
-            if (!pass.equals(conf)) {
-                message.setText("Passwords do not match.");
-                return;
-            }
-
-            if (!validEmail(em)) {
-                message.setText("Invalid email format.");
-                return;
-            }
-
-            if (!ph.matches("\\d{10}")) {
-                message.setText("Phone number must be exactly 10 digits.");
-                return;
-            }
-
-            message.setText("Registration Successful!");
+            ServiceResult result = userService.registerUser(newUser);
+            message.setText(result.getMessage());
         });
 
         backBtn.setOnAction(e -> showLoginPage());
 
         VBox layout = new VBox(10);
         layout.setPadding(new Insets(20));
-
         layout.getChildren().addAll(
                 new Label("Sign Up"),
                 username,
@@ -154,17 +145,6 @@ public class LoginPage extends Application {
 
         Scene scene = new Scene(layout, 350, 450);
         window.setScene(scene);
-    }
-
-    private boolean validPassword(String pass) {
-        return pass.length() >= 8 &&
-                pass.matches(".*[A-Z].*") &&
-                pass.matches(".*[0-9].*") &&
-                pass.matches(".*[^a-zA-Z0-9].*");
-    }
-
-    private boolean validEmail(String email) {
-        return email.matches("^[A-Za-z0-9+_.-]+@(gmail|yahoo|outlook|hotmail)\\.com$");
     }
 
     public static void main(String[] args) {
