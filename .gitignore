@@ -1,5 +1,6 @@
 # Database credentials
 config/db.properties.example
+config/db.properties
 
 # VS Code settings
 .vscode/
@@ -16,3 +17,4 @@ Thumbs.db
 
 # Metals build files
 .metals/
+

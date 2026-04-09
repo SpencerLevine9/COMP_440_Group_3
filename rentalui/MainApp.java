@@ -120,7 +120,7 @@ public class MainApp {
         featureDropdown.getItems().addAll(
                 "Wi-Fi",
                 "Kitchen",
-                "Mountain View",
+                "Mountainview",
                 "Parking",
                 "Pool",
                 "Air Conditioning",
