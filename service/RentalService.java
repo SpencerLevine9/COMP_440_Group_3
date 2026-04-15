@@ -103,6 +103,34 @@ public class RentalService {
         return new ServiceResult(false, "Could not submit review.");
     }
 
+    // Phase 3 Query 2: Users who posted two different rental units on the same day,
+    // one with feature X and another with feature Y
+    public ServiceResult findUsersByTwoFeaturesOnSameDay(String featureX, String featureY) {
+        if (isBlank(featureX) || isBlank(featureY)) {
+            return new ServiceResult(false, "Both features are required.");
+        }
+
+        List<String> users = rentalDAO.findUsersByTwoFeaturesOnSameDay(featureX.trim(), featureY.trim());
+
+        if (users.isEmpty()) {
+            return new ServiceResult(false, "No users found matching the criteria.");
+        }
+
+        return new ServiceResult(true, String.join(", ", users));
+    }
+
+    // Phase 3 Query 6: Users whose rental units have never received a "Poor" review
+    // (units with no reviews at all are fine). User must have posted at least one rental unit.
+    public ServiceResult findUsersWithNoPoorReviews() {
+        List<String> users = rentalDAO.findUsersWithNoPoorReviews();
+
+        if (users.isEmpty()) {
+            return new ServiceResult(false, "No users found matching the criteria.");
+        }
+
+        return new ServiceResult(true, String.join(", ", users));
+    }
+
     private List<String> parseFeatures(String featuresText) {
         List<String> features = new ArrayList<>();
 

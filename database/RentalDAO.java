@@ -200,6 +200,70 @@ public class RentalDAO {
         }
     }
 
+    // Phase 3 Query 2: Users who posted two different rental units on the same day,
+    // one with feature X and another with feature Y
+    public List<String> findUsersByTwoFeaturesOnSameDay(String featureX, String featureY) {
+        List<String> results = new ArrayList<>();
+
+        String sql =
+                "SELECT DISTINCT r1.username " +
+                "FROM rental_unit r1 " +
+                "JOIN rental_feature rf1 ON r1.rental_id = rf1.rental_id " +
+                "JOIN rental_unit r2 ON r1.username = r2.username " +
+                "  AND r1.post_date = r2.post_date " +
+                "  AND r1.rental_id != r2.rental_id " +
+                "JOIN rental_feature rf2 ON r2.rental_id = rf2.rental_id " +
+                "WHERE rf1.feature = ? AND rf2.feature = ?";
+
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, featureX);
+            ps.setString(2, featureY);
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                results.add(rs.getString("username"));
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return results;
+    }
+
+    // Phase 3 Query 6: Users whose rental units have never received a "Poor" review
+    // (units with no reviews at all are fine). User must have posted at least one rental unit.
+    public List<String> findUsersWithNoPoorReviews() {
+        List<String> results = new ArrayList<>();
+
+        String sql =
+                "SELECT DISTINCT ru.username " +
+                "FROM rental_unit ru " +
+                "WHERE ru.username NOT IN (" +
+                "  SELECT ru2.username " +
+                "  FROM rental_unit ru2 " +
+                "  JOIN rental_review rr ON ru2.rental_id = rr.rental_id " +
+                "  WHERE rr.score = 'Poor'" +
+                ")";
+
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                results.add(rs.getString("username"));
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return results;
+    }
+
     // Helpful for the search page later
     public List<String> searchRentalsByFeature(String feature) {
         List<String> results = new ArrayList<>();
