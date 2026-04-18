@@ -37,10 +37,14 @@ public class MainApp {
         Button postBtn = new Button("Post Rental");
         Button searchBtn = new Button("Search Rentals");
         Button reviewBtn = new Button("Write Review");
+        Button expensiveBtn = new Button("Most Expensive Rentals");
+        Button topUsersBtn = new Button("Top Posters By Date");
 
         postBtn.setOnAction(e -> showPostRental());
         searchBtn.setOnAction(e -> showSearch());
         reviewBtn.setOnAction(e -> showReview(""));
+        expensiveBtn.setOnAction(e -> showMostExpensiveRentals());
+        topUsersBtn.setOnAction(e -> showTopPostingUsersByDate());
 
         VBox layout = new VBox(15);
         layout.setPadding(new Insets(20));
@@ -49,10 +53,12 @@ public class MainApp {
                 userLabel,
                 postBtn,
                 searchBtn,
-                reviewBtn
+                reviewBtn,
+                expensiveBtn,
+                topUsersBtn
         );
 
-        window.setScene(new Scene(layout, 320, 260));
+        window.setScene(new Scene(layout, 320, 360));
     }
 
     private void showPostRental() {
@@ -261,6 +267,77 @@ public class MainApp {
         window.setScene(new Scene(layout, 380, 340));
     }
 
+
+    private void showMostExpensiveRentals() {
+        ListView<String> results = new ListView<>();
+        results.setPrefHeight(220);
+
+        Button loadBtn = new Button("Load Results");
+        Button back = new Button("Back");
+
+        loadBtn.setOnAction(e -> {
+            results.getItems().clear();
+            results.getItems().addAll(rentalService.getMostExpensiveRentalsPerFeature());
+        });
+
+        back.setOnAction(e -> showMainMenu());
+
+        VBox layout = new VBox(10);
+        layout.setPadding(new Insets(20));
+        layout.getChildren().addAll(
+                new Label("Most Expensive Rental Units For Each Feature"),
+                loadBtn,
+                results,
+                back
+        );
+
+        window.setScene(new Scene(layout, 560, 350));
+    }
+
+
+    private void showTopPostingUsersByDate() {
+        TextField dateField = new TextField();
+        dateField.setPromptText("YYYY-MM-DD");
+
+        ListView<String> results = new ListView<>();
+        results.setPrefHeight(220);
+
+        Label message = new Label();
+
+        Button searchBtn = new Button("Search");
+        Button back = new Button("Back");
+
+        searchBtn.setOnAction(e -> {
+            results.getItems().clear();
+            message.setText("");
+
+            String dateText = dateField.getText().trim();
+            if (dateText.isEmpty()) {
+                message.setText("Please enter a date.");
+                return;
+            }
+
+            List<String> matches = rentalService.getTopPostingUsersByDate(dateText);
+            results.getItems().addAll(matches);
+        });
+
+        back.setOnAction(e -> showMainMenu());
+
+        VBox layout = new VBox(10);
+        layout.setPadding(new Insets(20));
+        layout.getChildren().addAll(
+                new Label("Users Who Posted The Most Rentals On A Specific Date"),
+                dateField,
+                searchBtn,
+                results,
+                back,
+                message
+        );
+
+        window.setScene(new Scene(layout, 560, 350));
+    }
+
+    
     private String extractRentalId(String row) {
         String prefix = "Rental ID: ";
         int start = row.indexOf(prefix);

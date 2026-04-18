@@ -103,6 +103,29 @@ public class RentalService {
         return new ServiceResult(false, "Could not submit review.");
     }
 
+    public List<String> getMostExpensiveRentalsPerFeature() {
+        return rentalDAO.getMostExpensiveRentalsPerFeature();
+    }
+
+    
+    public List<String> getTopPostingUsersByDate(String dateText) {
+        List<String> results = new ArrayList<>();
+
+        if (isBlank(dateText)) {
+            results.add("Please enter a date.");
+            return results;
+        }
+
+        try {
+            java.sql.Date selectedDate = java.sql.Date.valueOf(dateText.trim());
+            return rentalDAO.getTopPostingUsersByDate(selectedDate);
+        } catch (IllegalArgumentException e) {
+            results.add("Invalid date format. Use YYYY-MM-DD.");
+            return results;
+        }
+    }
+
+
     private List<String> parseFeatures(String featuresText) {
         List<String> features = new ArrayList<>();
 

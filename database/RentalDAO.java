@@ -235,4 +235,81 @@ public class RentalDAO {
 
         return results;
     }
+
+    // New method to get the most expensive rentals for each feature
+    public List<String> getMostExpensiveRentalsPerFeature() {
+        List<String> results = new ArrayList<>();
+
+        String sql =
+            "SELECT rf.feature, ru.rental_id, ru.title, ru.price, ru.username, ru.post_date " +
+            "FROM rental_feature rf " +
+            "JOIN rental_unit ru ON rf.rental_id = ru.rental_id " +
+            "JOIN ( " +
+            "    SELECT rf2.feature, MAX(ru2.price) AS max_price " +
+            "    FROM rental_feature rf2 " +
+            "    JOIN rental_unit ru2 ON rf2.rental_id = ru2.rental_id " +
+            "    GROUP BY rf2.feature " +
+            ") mx ON rf.feature = mx.feature AND ru.price = mx.max_price " +
+            "ORDER BY rf.feature, ru.rental_id";
+
+        try (Connection conn = getConnection();
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                String row = "Feature: " + rs.getString("feature")
+                        + " | Rental ID: " + rs.getInt("rental_id")
+                        + " | Title: " + rs.getString("title")
+                        + " | Price: " + rs.getDouble("price")
+                        + " | Owner: " + rs.getString("username")
+                        + " | Post Date: " + rs.getDate("post_date");
+                results.add(row);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return results;
+    }
+        // New method to get the top posting users by date
+    public List<String> getTopPostingUsersByDate(Date selectedDate) {
+        List<String> results = new ArrayList<>();
+
+        String sql =
+            "SELECT ru.username, COUNT(*) AS rental_count " +
+            "FROM rental_unit ru " +
+            "WHERE ru.post_date = ? " +
+            "GROUP BY ru.username " +
+            "HAVING COUNT(*) = ( " +
+            "    SELECT MAX(user_count) " +
+            "    FROM ( " +
+            "        SELECT COUNT(*) AS user_count " +
+            "        FROM rental_unit " +
+            "        WHERE post_date = ? " +
+            "        GROUP BY username " +
+            "    ) counts " +
+            ")";
+
+        try (Connection conn = getConnection();
+            PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setDate(1, selectedDate);
+            ps.setDate(2, selectedDate);
+
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                String row = "Username: " + rs.getString("username")
+                        + " | Rentals Posted: " + rs.getInt("rental_count")
+                        + " | Date: " + selectedDate;
+                results.add(row);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return results;
+    }
 }
