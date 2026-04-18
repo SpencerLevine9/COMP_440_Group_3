@@ -11,7 +11,7 @@ public class UserDAO {
         String query = "SELECT username FROM user WHERE username = ?";
 
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
+                PreparedStatement stmt = conn.prepareStatement(query)) {
 
             stmt.setString(1, username);
             ResultSet rs = stmt.executeQuery();
@@ -28,7 +28,7 @@ public class UserDAO {
         String query = "SELECT email FROM user WHERE email = ?";
 
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
+                PreparedStatement stmt = conn.prepareStatement(query)) {
 
             stmt.setString(1, email);
             ResultSet rs = stmt.executeQuery();
@@ -45,7 +45,7 @@ public class UserDAO {
         String query = "SELECT phone FROM user WHERE phone = ?";
 
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
+                PreparedStatement stmt = conn.prepareStatement(query)) {
 
             stmt.setString(1, phone);
             ResultSet rs = stmt.executeQuery();
@@ -59,15 +59,15 @@ public class UserDAO {
     }
 
     public boolean registerUser(String username, String password,
-                                String firstName, String lastName,
-                                String email, String phone) {
+            String firstName, String lastName,
+            String email, String phone) {
 
         String hashedPassword = PasswordUtil.hashPassword(password);
 
         String query = "INSERT INTO user (username, password, firstName, lastName, email, phone) VALUES (?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = DatabaseConnection.getConnection();
-            PreparedStatement stmt = conn.prepareStatement(query)) {
+                PreparedStatement stmt = conn.prepareStatement(query)) {
 
             stmt.setString(1, username);
             stmt.setString(2, hashedPassword);
@@ -90,7 +90,7 @@ public class UserDAO {
         String query = "SELECT password FROM user WHERE username = ?";
 
         try (Connection conn = DatabaseConnection.getConnection();
-            PreparedStatement stmt = conn.prepareStatement(query)) {
+                PreparedStatement stmt = conn.prepareStatement(query)) {
 
             stmt.setString(1, username);
             ResultSet rs = stmt.executeQuery();
