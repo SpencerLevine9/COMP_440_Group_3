@@ -30,53 +30,54 @@ public class MainApp {
         showMainMenu();
     }
 
+    // MAIN MENU
     private void showMainMenu() {
-        Label welcome = new Label("Main Menu");
+        Label welcome = new Label("Hello, welcome to our Rental Management System!");
         Label userLabel = new Label("Logged in as: " + currentUsername);
+        Label prompt = new Label("What would you like to do?");
 
-        Button postBtn = new Button("Post Rental");
-        Button searchBtn = new Button("Search Rentals");
-        Button reviewBtn = new Button("Write Review");
-        Button expensiveBtn = new Button("Most Expensive Rentals");
-        Button topUsersBtn = new Button("Top Posters By Date");
+        Button postBtn = new Button("Post A Rental");
+        Button searchBtn = new Button("Search Available Rentals");
+        Button reviewBtn = new Button("Write A Review");
+
+        postBtn.setMaxWidth(Double.MAX_VALUE);
+        searchBtn.setMaxWidth(Double.MAX_VALUE);
+        reviewBtn.setMaxWidth(Double.MAX_VALUE);
 
         postBtn.setOnAction(e -> showPostRental());
         searchBtn.setOnAction(e -> showSearch());
         reviewBtn.setOnAction(e -> showReview(""));
-        expensiveBtn.setOnAction(e -> showMostExpensiveRentals());
-        topUsersBtn.setOnAction(e -> showTopPostingUsersByDate());
 
         VBox layout = new VBox(15);
         layout.setPadding(new Insets(20));
         layout.getChildren().addAll(
                 welcome,
                 userLabel,
+                prompt,
                 postBtn,
                 searchBtn,
-                reviewBtn,
-                expensiveBtn,
-                topUsersBtn
-        );
+                reviewBtn);
 
-        window.setScene(new Scene(layout, 320, 360));
+        window.setScene(new Scene(layout, 480, 320));
     }
 
+    // POST RENTAL PAGE
     private void showPostRental() {
         TextField title = new TextField();
-        title.setPromptText("Title");
+        title.setPromptText("Rental Title");
 
         TextField desc = new TextField();
-        desc.setPromptText("Description");
+        desc.setPromptText("Rental Description");
 
         TextField features = new TextField();
         features.setPromptText("Features (comma-separated)");
 
         TextField price = new TextField();
-        price.setPromptText("Price");
+        price.setPromptText("Rental Price");
 
         Label message = new Label();
 
-        Button submit = new Button("Submit");
+        Button submit = new Button("Submit Rental Listing");
         Button back = new Button("Back");
 
         submit.setOnAction(e -> {
@@ -103,79 +104,114 @@ public class MainApp {
         VBox layout = new VBox(10);
         layout.setPadding(new Insets(20));
         layout.getChildren().addAll(
-                new Label("Post Rental"),
+                new Label("Post Rental Listing"),
                 title,
                 desc,
                 features,
                 price,
                 submit,
                 back,
-                message
-        );
+                message);
 
-        window.setScene(new Scene(layout, 380, 320));
+        window.setScene(new Scene(layout, 420, 420));
     }
 
+    // SEARCH RENTALS PAGE
     private void showSearch() {
-        TextField featureInput = new TextField();
-        featureInput.setPromptText("Enter one feature");
+        TextField featureSearch = new TextField();
+        featureSearch.setPromptText("Search by feature (e.g. Wi-Fi)");
 
-        Label hint = new Label("Type one feature or pick one from the dropdown.");
+        TextField featureX = new TextField();
+        featureX.setPromptText("Feature X");
 
-        ComboBox<String> featureDropdown = new ComboBox<>();
-        featureDropdown.getItems().addAll(
-                "Wi-Fi",
-                "Kitchen",
-                "Mountainview",
-                "Parking",
-                "Pool",
-                "Air Conditioning",
-                "Pets Allowed",
-                "Washer",
-                "Dryer",
-                "Free Gym",
-                "Security System",
-                "Balcony",
-                "Garden",
-                "Wheelchair Accessible",
-                "Elevator",
-                "Smoking Area"
-        );
-        featureDropdown.setPromptText("Select a feature");
+        TextField featureY = new TextField();
+        featureY.setPromptText("Feature Y");
 
-        featureDropdown.setOnAction(e -> {
-            String selected = featureDropdown.getValue();
-            if (selected != null) {
-                featureInput.setText(selected);
-            }
-        });
+        TextField dateField = new TextField();
+        dateField.setPromptText("Enter Date (YYYY-MM-DD)");
 
         ListView<String> results = new ListView<>();
         results.setPrefHeight(180);
 
         Label message = new Label();
 
-        Button searchBtn = new Button("Search");
+        Button normalSearch = new Button("Search");
+        Button expensiveBtn = new Button("View Most Expensive Listings By Feature");
+        Button comboBtn = new Button("Find Hosts With Features Posted On The Same Day");
+        Button topHostsBtn = new Button("Top Hosts By Listing Date");
+        Button trustedHostsBtn = new Button("Top Rated Hosts");
         Button reviewSelectedBtn = new Button("Review Selected Rental");
         Button back = new Button("Back");
 
-        searchBtn.setOnAction(e -> {
-            String feature = featureInput.getText().trim();
-
+        normalSearch.setOnAction(e -> {
             results.getItems().clear();
             message.setText("");
 
+            String feature = featureSearch.getText().trim();
             if (feature.isEmpty()) {
                 message.setText("Please enter a feature.");
                 return;
             }
 
             List<String> matches = rentalService.searchByFeature(feature);
-
             if (matches.isEmpty()) {
                 results.getItems().add("No rentals found.");
             } else {
                 results.getItems().addAll(matches);
+            }
+        });
+
+        // Phase 3 Query 1
+        expensiveBtn.setOnAction(e -> {
+            results.getItems().clear();
+            message.setText("");
+            results.getItems().addAll(rentalService.getMostExpensiveRentalsPerFeature());
+        });
+
+        // Phase 3 Query 2
+        comboBtn.setOnAction(e -> {
+            results.getItems().clear();
+            message.setText("");
+
+            ServiceResult sr = rentalService.findUsersByTwoFeaturesOnSameDay(
+                    featureX.getText(), featureY.getText());
+
+            if (sr.isSuccess()) {
+                for (String name : sr.getMessage().split(",\\s*")) {
+                    results.getItems().add(name);
+                }
+            } else {
+                message.setText(sr.getMessage());
+            }
+        });
+
+        // Phase 3 Query 4
+        topHostsBtn.setOnAction(e -> {
+            results.getItems().clear();
+            message.setText("");
+
+            String dateText = dateField.getText().trim();
+            if (dateText.isEmpty()) {
+                message.setText("Please enter a date.");
+                return;
+            }
+
+            results.getItems().addAll(rentalService.getTopPostingUsersByDate(dateText));
+        });
+
+        // Phase 3 Query 6
+        trustedHostsBtn.setOnAction(e -> {
+            results.getItems().clear();
+            message.setText("");
+
+            ServiceResult sr = rentalService.findUsersWithNoPoorReviews();
+
+            if (sr.isSuccess()) {
+                for (String name : sr.getMessage().split(",\\s*")) {
+                    results.getItems().add(name);
+                }
+            } else {
+                message.setText(sr.getMessage());
             }
         });
 
@@ -201,20 +237,31 @@ public class MainApp {
         VBox layout = new VBox(10);
         layout.setPadding(new Insets(20));
         layout.getChildren().addAll(
-                new Label("Search Rentals"),
-                hint,
-                featureDropdown,
-                featureInput,
-                searchBtn,
+                new Label("Search Available Rentals"),
+                featureSearch,
+                normalSearch,
+
+                new Label("Advanced Search and Reports"),
+                expensiveBtn,
+
+                featureX,
+                featureY,
+                comboBtn,
+
+                dateField,
+                topHostsBtn,
+
+                trustedHostsBtn,
+
                 results,
                 reviewSelectedBtn,
                 back,
-                message
-        );
+                message);
 
-        window.setScene(new Scene(layout, 540, 430));
+        window.setScene(new Scene(layout, 560, 760));
     }
 
+    // WRITE REVIEW PAGE
     private void showReview(String prefilledRentalId) {
         TextField rentalIdField = new TextField();
         rentalIdField.setPromptText("Rental ID");
@@ -225,12 +272,19 @@ public class MainApp {
         rating.setPromptText("Select a rating");
 
         TextArea remark = new TextArea();
-        remark.setPromptText("Write your review...");
+        remark.setPromptText("Write your review here...");
         remark.setPrefRowCount(4);
 
         Label message = new Label();
 
+        ComboBox<String> reviewFilter = new ComboBox<>();
+        reviewFilter.getItems().addAll("Excellent", "Good", "Fair", "Poor");
+        reviewFilter.setPromptText("Please Select Review Type");
+
+        Label userResults = new Label();
+
         Button submit = new Button("Submit Review");
+        Button showUsers = new Button("Display Users Who Posted Only This Type Of Review");
         Button back = new Button("Back");
 
         submit.setOnAction(e -> {
@@ -250,6 +304,27 @@ public class MainApp {
             }
         });
 
+        reviewFilter.setOnAction(e -> {
+            String selected = reviewFilter.getValue();
+            if (selected != null) {
+                showUsers.setText("Display Users Who Posted Only " + selected + " Reviews");
+            }
+        });
+
+        // Phase 3 Query 5: backend not implemented yet
+        showUsers.setOnAction(e -> {
+            String selected = reviewFilter.getValue();
+
+            if (selected == null) {
+                userResults.setText("Please select a review type first.");
+                return;
+            }
+
+            userResults.setText(
+                    "Users who posted only " + selected + " reviews:\n\n" +
+                            "(Backend pending: Phase 3 Query 5)");
+        });
+
         back.setOnAction(e -> showMainMenu());
 
         VBox layout = new VBox(10);
@@ -260,84 +335,18 @@ public class MainApp {
                 rating,
                 remark,
                 submit,
-                back,
-                message
-        );
+                message,
 
-        window.setScene(new Scene(layout, 380, 340));
+                new Label("Review Insights"),
+                reviewFilter,
+                showUsers,
+                userResults,
+
+                back);
+
+        window.setScene(new Scene(layout, 500, 720));
     }
 
-
-    private void showMostExpensiveRentals() {
-        ListView<String> results = new ListView<>();
-        results.setPrefHeight(220);
-
-        Button loadBtn = new Button("Load Results");
-        Button back = new Button("Back");
-
-        loadBtn.setOnAction(e -> {
-            results.getItems().clear();
-            results.getItems().addAll(rentalService.getMostExpensiveRentalsPerFeature());
-        });
-
-        back.setOnAction(e -> showMainMenu());
-
-        VBox layout = new VBox(10);
-        layout.setPadding(new Insets(20));
-        layout.getChildren().addAll(
-                new Label("Most Expensive Rental Units For Each Feature"),
-                loadBtn,
-                results,
-                back
-        );
-
-        window.setScene(new Scene(layout, 560, 350));
-    }
-
-
-    private void showTopPostingUsersByDate() {
-        TextField dateField = new TextField();
-        dateField.setPromptText("YYYY-MM-DD");
-
-        ListView<String> results = new ListView<>();
-        results.setPrefHeight(220);
-
-        Label message = new Label();
-
-        Button searchBtn = new Button("Search");
-        Button back = new Button("Back");
-
-        searchBtn.setOnAction(e -> {
-            results.getItems().clear();
-            message.setText("");
-
-            String dateText = dateField.getText().trim();
-            if (dateText.isEmpty()) {
-                message.setText("Please enter a date.");
-                return;
-            }
-
-            List<String> matches = rentalService.getTopPostingUsersByDate(dateText);
-            results.getItems().addAll(matches);
-        });
-
-        back.setOnAction(e -> showMainMenu());
-
-        VBox layout = new VBox(10);
-        layout.setPadding(new Insets(20));
-        layout.getChildren().addAll(
-                new Label("Users Who Posted The Most Rentals On A Specific Date"),
-                dateField,
-                searchBtn,
-                results,
-                back,
-                message
-        );
-
-        window.setScene(new Scene(layout, 560, 350));
-    }
-
-    
     private String extractRentalId(String row) {
         String prefix = "Rental ID: ";
         int start = row.indexOf(prefix);
