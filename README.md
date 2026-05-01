@@ -46,9 +46,9 @@ This will create the database and the required user table.
 
 Phase 1 Demo: https://www.youtube.com/watch?v=QBybrf2hZLA
 
-Phase 2 Demo:
+Phase 2 Demo: https://www.youtube.com/watch?v=DQhj2wtvF8k
 
-Phase 3 Demo:
+Phase 3 Demo: https://www.youtube.com/watch?v=fYFFaiqvRw0
 
 ## Contributions to Phase 3
 
