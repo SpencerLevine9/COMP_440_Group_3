@@ -313,16 +313,20 @@ public class MainApp {
 
                 new Label("Advanced Search and Reports"),
                 expensiveBtn,
+                new Separator(),
 
                 featureX,
                 featureY,
                 comboBtn,
+                new Separator(),
 
                 userXField,
                 excellentGoodBtn,
+                new Separator(),
 
                 dateField,
                 topHostsBtn,
+                new Separator(),
 
                 trustedHostsBtn,
 

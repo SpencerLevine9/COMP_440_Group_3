@@ -42,4 +42,16 @@ sql/schema.sql
 
 This will create the database and the required user table.
 
+## Demo Videos
+
 Phase 1 Demo: https://www.youtube.com/watch?v=QBybrf2hZLA
+
+Phase 2 Demo:
+
+Phase 3 Demo:
+
+## Contributions to Phase 3
+
+- Spencer: Queries 1 & 4, connect results to backend methods.
+- Grace: Build the GUI for Phase 3 queries. Queries 3 & 5.
+- Ashton: Queries 2 & 6. Testing & full integration, demo prep.
