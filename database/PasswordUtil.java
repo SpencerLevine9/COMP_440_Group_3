@@ -1,4 +1,4 @@
-// Use Java’s built-in password hashing with PBKDF2 and a secure random salt. 
+// Use Java's built-in password hashing with PBKDF2 and a secure random salt.
 // This approach is more secure than using a simple hash function like SHA-256, 
 // as it includes a salt to prevent rainbow table attacks and uses multiple iterations to slow down brute-force attacks.
 package database;

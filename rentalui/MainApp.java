@@ -121,11 +121,42 @@ public class MainApp {
         TextField featureSearch = new TextField();
         featureSearch.setPromptText("Search by feature (e.g. Wi-Fi)");
 
+        ComboBox<String> featureDropdown = new ComboBox<>();
+        featureDropdown.getItems().addAll(
+                "Wi-Fi",
+                "Kitchen",
+                "Mountainview",
+                "Parking",
+                "Pool",
+                "Air Conditioning",
+                "Pets Allowed",
+                "Washer",
+                "Dryer",
+                "Free Gym",
+                "Security System",
+                "Balcony",
+                "Garden",
+                "Wheelchair Accessible",
+                "Elevator",
+                "Smoking Area"
+        );
+        featureDropdown.setPromptText("Or pick a feature from the list");
+
+        featureDropdown.setOnAction(e -> {
+            String selected = featureDropdown.getValue();
+            if (selected != null) {
+                featureSearch.setText(selected);
+            }
+        });
+
         TextField featureX = new TextField();
         featureX.setPromptText("Feature X");
 
         TextField featureY = new TextField();
         featureY.setPromptText("Feature Y");
+
+        TextField userXField = new TextField();
+        userXField.setPromptText("Username (for Excellent/Good report)");
 
         TextField dateField = new TextField();
         dateField.setPromptText("Enter Date (YYYY-MM-DD)");
@@ -136,8 +167,11 @@ public class MainApp {
         Label message = new Label();
 
         Button normalSearch = new Button("Search");
+        Button newestBtn = new Button("Sort By Newest Listings First");
+        Button oldestBtn = new Button("Sort By Oldest Listings First");
         Button expensiveBtn = new Button("View Most Expensive Listings By Feature");
         Button comboBtn = new Button("Find Hosts With Features Posted On The Same Day");
+        Button excellentGoodBtn = new Button("Show User's Rentals With Only Excellent/Good Reviews");
         Button topHostsBtn = new Button("Top Hosts By Listing Date");
         Button trustedHostsBtn = new Button("Top Rated Hosts");
         Button reviewSelectedBtn = new Button("Review Selected Rental");
@@ -154,6 +188,30 @@ public class MainApp {
             }
 
             List<String> matches = rentalService.searchByFeature(feature);
+            if (matches.isEmpty()) {
+                results.getItems().add("No rentals found.");
+            } else {
+                results.getItems().addAll(matches);
+            }
+        });
+
+        newestBtn.setOnAction(e -> {
+            results.getItems().clear();
+            message.setText("");
+
+            List<String> matches = rentalService.getAllRentalsSortedByDate(false);
+            if (matches.isEmpty()) {
+                results.getItems().add("No rentals found.");
+            } else {
+                results.getItems().addAll(matches);
+            }
+        });
+
+        oldestBtn.setOnAction(e -> {
+            results.getItems().clear();
+            message.setText("");
+
+            List<String> matches = rentalService.getAllRentalsSortedByDate(true);
             if (matches.isEmpty()) {
                 results.getItems().add("No rentals found.");
             } else {
@@ -183,6 +241,15 @@ public class MainApp {
             } else {
                 message.setText(sr.getMessage());
             }
+        });
+
+        // Phase 3 Query 3
+        excellentGoodBtn.setOnAction(e -> {
+            results.getItems().clear();
+            message.setText("");
+
+            List<String> matches = rentalService.findRentalsByUserWithAllExcellentOrGood(userXField.getText());
+            results.getItems().addAll(matches);
         });
 
         // Phase 3 Query 4
@@ -239,7 +306,10 @@ public class MainApp {
         layout.getChildren().addAll(
                 new Label("Search Available Rentals"),
                 featureSearch,
+                featureDropdown,
                 normalSearch,
+                newestBtn,
+                oldestBtn,
 
                 new Label("Advanced Search and Reports"),
                 expensiveBtn,
@@ -247,6 +317,9 @@ public class MainApp {
                 featureX,
                 featureY,
                 comboBtn,
+
+                userXField,
+                excellentGoodBtn,
 
                 dateField,
                 topHostsBtn,
@@ -282,9 +355,11 @@ public class MainApp {
         reviewFilter.setPromptText("Please Select Review Type");
 
         Label userResults = new Label();
+        Label posterResults = new Label();
 
         Button submit = new Button("Submit Review");
         Button showUsers = new Button("Display Users Who Posted Only This Type Of Review");
+        Button showPosters = new Button("Display Hosts Who Have Never Received A Poor Review");
         Button back = new Button("Back");
 
         submit.setOnAction(e -> {
@@ -311,7 +386,20 @@ public class MainApp {
             }
         });
 
-        // Phase 3 Query 5: backend not implemented yet
+        // Phase 3 Query 6 (alternate entry point on the review page)
+        showPosters.setOnAction(e -> {
+            posterResults.setText("");
+
+            ServiceResult sr = rentalService.findUsersWithNoPoorReviews();
+
+            if (sr.isSuccess()) {
+                posterResults.setText("Hosts with no Poor reviews:\n\n" + sr.getMessage());
+            } else {
+                posterResults.setText(sr.getMessage());
+            }
+        });
+
+        // Phase 3 Query 5: fixed on "Poor".
         showUsers.setOnAction(e -> {
             String selected = reviewFilter.getValue();
 
@@ -320,9 +408,18 @@ public class MainApp {
                 return;
             }
 
-            userResults.setText(
-                    "Users who posted only " + selected + " reviews:\n\n" +
-                            "(Backend pending: Phase 3 Query 5)");
+            if (!"Poor".equals(selected)) {
+                userResults.setText("This report is only defined for Poor reviews. Please select Poor.");
+                return;
+            }
+
+            ServiceResult sr = rentalService.findUsersWithAllPoorReviews();
+
+            if (sr.isSuccess()) {
+                userResults.setText("Users who posted only Poor reviews:\n\n" + sr.getMessage());
+            } else {
+                userResults.setText(sr.getMessage());
+            }
         });
 
         back.setOnAction(e -> showMainMenu());
@@ -342,9 +439,13 @@ public class MainApp {
                 showUsers,
                 userResults,
 
+                new Label("Host Reputation"),
+                showPosters,
+                posterResults,
+
                 back);
 
-        window.setScene(new Scene(layout, 500, 720));
+        window.setScene(new Scene(layout, 520, 800));
     }
 
     private String extractRentalId(String row) {

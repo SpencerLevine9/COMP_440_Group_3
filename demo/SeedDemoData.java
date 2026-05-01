@@ -133,20 +133,21 @@ public class SeedDemoData {
             {ids.get(6), "alice", "Excellent", "Amazing cabin, loved it!",           "2025-10-25"},
             {ids.get(6), "bob",   "Good",      "Nice place, a bit remote.",          "2025-10-26"},
             {ids.get(7), "carol", "Excellent", "Great downtown location!",           "2025-10-25"},
-            {ids.get(7), "eve",   "Good",      "Clean and well-maintained.",         "2025-10-26"},
 
-            // Q5: eve posts reviews but ALL of them are Poor
+            // Q5: eve posts reviews and every one of them is Poor
             {ids.get(0), "eve",   "Poor",      "Overpriced for what you get.",       "2025-10-20"},
             {ids.get(2), "eve",   "Poor",      "Too small and noisy.",              "2025-10-21"},
 
-            // Q6 testing: give alice's rental (index 0) a non-Poor review so alice stays in Q6
+            // Extra non-Poor reviews on alice's and bob's rentals; these do NOT save them
+            // for Q6, since rentals 0 and 2 still received Poor reviews above.
             {ids.get(0), "bob",   "Good",      "Decent place overall.",             "2025-10-20"},
             {ids.get(1), "dan",   "Excellent", "Beach access was great.",           "2025-10-20"},
 
-            // Give eve's rental (index 8) a Poor review - so eve is NOT in Q6
+            // Give eve's rental (index 8) a Poor review, so eve is also excluded from Q6
             {ids.get(8), "alice", "Poor",      "Not as described.",                 "2025-10-25"},
 
-            // bob's rental (index 2) gets a Fair review - bob still in Q6 (Fair is not Poor)
+            // bob's rental (index 2) also gets a Fair review (Fair is not Poor, but rental 2
+            // already has a Poor above, so bob is still excluded from Q6)
             {ids.get(2), "carol", "Fair",      "It was okay.",                      "2025-10-22"},
 
             // carol's rental (index 4) gets no reviews (stays reviewless, fine for Q6)

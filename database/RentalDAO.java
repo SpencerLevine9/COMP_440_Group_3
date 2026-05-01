@@ -233,6 +233,80 @@ public class RentalDAO {
         return results;
     }
 
+    // Phase 3 Query 3: Rentals owned by username X where every review is "Excellent" or "Good"
+    // (rental must have at least one review; rentals with zero reviews are excluded)
+    public List<String> findRentalsByUserWithAllExcellentOrGood(String username) {
+        List<String> results = new ArrayList<>();
+
+        String sql =
+                "SELECT ru.rental_id, ru.title, ru.description, ru.price, ru.username, " +
+                        "GROUP_CONCAT(DISTINCT rf.feature ORDER BY rf.feature SEPARATOR ', ') AS features " +
+                        "FROM rental_unit ru " +
+                        "LEFT JOIN rental_feature rf ON ru.rental_id = rf.rental_id " +
+                        "WHERE ru.username = ? " +
+                        "  AND EXISTS (" +
+                        "    SELECT 1 FROM rental_review rr WHERE rr.rental_id = ru.rental_id" +
+                        "  ) " +
+                        "  AND NOT EXISTS (" +
+                        "    SELECT 1 FROM rental_review rr2 " +
+                        "    WHERE rr2.rental_id = ru.rental_id " +
+                        "      AND rr2.score NOT IN ('Excellent', 'Good')" +
+                        "  ) " +
+                        "GROUP BY ru.rental_id, ru.title, ru.description, ru.price, ru.username " +
+                        "ORDER BY ru.rental_id";
+
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, username);
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                String row = "Rental ID: " + rs.getInt("rental_id")
+                        + " | Title: " + rs.getString("title")
+                        + " | Description: " + rs.getString("description")
+                        + " | Price: " + rs.getDouble("price")
+                        + " | Features: " + rs.getString("features")
+                        + " | Owner: " + rs.getString("username");
+                results.add(row);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return results;
+    }
+
+    // Phase 3 Query 5: Users who posted at least one review and every one of their reviews is "Poor"
+    public List<String> findUsersWithAllPoorReviews() {
+        List<String> results = new ArrayList<>();
+
+        String sql =
+                "SELECT DISTINCT rr.reviewer_username " +
+                "FROM rental_review rr " +
+                "WHERE rr.reviewer_username NOT IN (" +
+                "  SELECT rr2.reviewer_username " +
+                "  FROM rental_review rr2 " +
+                "  WHERE rr2.score <> 'Poor'" +
+                ")";
+
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                results.add(rs.getString("reviewer_username"));
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return results;
+    }
+
     // Phase 3 Query 6: Users whose rental units have never received a "Poor" review
     // (units with no reviews at all are fine). User must have posted at least one rental unit.
     public List<String> findUsersWithNoPoorReviews() {
@@ -255,6 +329,39 @@ public class RentalDAO {
 
             while (rs.next()) {
                 results.add(rs.getString("username"));
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return results;
+    }
+
+    // List all rentals sorted by post_date. ascending=true means oldest first.
+    public List<String> getAllRentalsSortedByDate(boolean ascending) {
+        List<String> results = new ArrayList<>();
+
+        String sql =
+                "SELECT ru.rental_id, ru.title, ru.description, ru.price, ru.username, " +
+                        "GROUP_CONCAT(rf.feature ORDER BY rf.feature SEPARATOR ', ') AS features " +
+                        "FROM rental_unit ru " +
+                        "LEFT JOIN rental_feature rf ON ru.rental_id = rf.rental_id " +
+                        "GROUP BY ru.rental_id, ru.title, ru.description, ru.price, ru.username, ru.post_date " +
+                        "ORDER BY ru.post_date " + (ascending ? "ASC" : "DESC") + ", ru.rental_id " + (ascending ? "ASC" : "DESC");
+
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                String row = "Rental ID: " + rs.getInt("rental_id")
+                        + " | Title: " + rs.getString("title")
+                        + " | Description: " + rs.getString("description")
+                        + " | Price: " + rs.getDouble("price")
+                        + " | Features: " + rs.getString("features")
+                        + " | Owner: " + rs.getString("username");
+                results.add(row);
             }
 
         } catch (SQLException e) {

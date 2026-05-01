@@ -29,7 +29,7 @@ Connected to MySQL successfully!
 - MySQL database connection using JDBC
 - User registration system
 - Duplicate checks for username, email, and phone
-- Java’s built-in password hashing with PBKDF2 and a secure random salt. 
+- Java's built-in password hashing with PBKDF2 and a secure random salt. 
 - Login authentication with password verification
 - SQL injection protection using PreparedStatement
 

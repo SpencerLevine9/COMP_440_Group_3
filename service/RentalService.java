@@ -63,6 +63,11 @@ public class RentalService {
         return rentalDAO.searchRentalsByFeature(feature.trim());
     }
 
+    // ascending=true means oldest first; false means newest first.
+    public List<String> getAllRentalsSortedByDate(boolean ascending) {
+        return rentalDAO.getAllRentalsSortedByDate(ascending);
+    }
+
     public ServiceResult submitReview(String rentalIDText,
                                       String reviewerUsername,
                                       String score,
@@ -124,6 +129,24 @@ public class RentalService {
         return new ServiceResult(true, String.join(", ", users));
     }
 
+    // Phase 3 Query 3: Rentals posted by user X where every review is Excellent or Good
+    public List<String> findRentalsByUserWithAllExcellentOrGood(String username) {
+        List<String> results = new ArrayList<>();
+
+        if (isBlank(username)) {
+            results.add("Please enter a username.");
+            return results;
+        }
+
+        List<String> rentals = rentalDAO.findRentalsByUserWithAllExcellentOrGood(username.trim());
+        if (rentals.isEmpty()) {
+            results.add("No rentals found for user " + username.trim() + ".");
+            return results;
+        }
+
+        return rentals;
+    }
+
     // Phase 3 Query 4: Users who posted the most rentals on a given date (ties included)
     public List<String> getTopPostingUsersByDate(String dateText) {
         List<String> results = new ArrayList<>();
@@ -140,6 +163,17 @@ public class RentalService {
             results.add("Invalid date format. Use YYYY-MM-DD.");
             return results;
         }
+    }
+
+    // Phase 3 Query 5: Users who posted some reviews and every one of them is "Poor"
+    public ServiceResult findUsersWithAllPoorReviews() {
+        List<String> users = rentalDAO.findUsersWithAllPoorReviews();
+
+        if (users.isEmpty()) {
+            return new ServiceResult(false, "No users found matching the criteria.");
+        }
+
+        return new ServiceResult(true, String.join(", ", users));
     }
 
     // Phase 3 Query 6: Users whose rental units have never received a "Poor" review
